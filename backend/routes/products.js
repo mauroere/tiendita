@@ -1,33 +1,37 @@
 const express = require("express");
-const router = express.Router();
 
-// Mock data for now
-const products = [
-  { id: 1, name: "Producto 1", price: 100 },
-  { id: 2, name: "Producto 2", price: 200 },
-  { id: 3, name: "Producto 3", price: 300 },
-];
+module.exports = (db) => {
+  const router = express.Router();
 
-router.get("/", (req, res) => {
-  const { page = 1, limit = 10, search = "" } = req.query;
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(search.toLowerCase())
-  );
-  const startIndex = (page - 1) * limit;
-  const paginatedProducts = filteredProducts.slice(
-    startIndex,
-    startIndex + parseInt(limit)
-  );
-  res.json(paginatedProducts);
-});
+  router.get("/", (req, res) => {
+    const { page = 1, limit = 10, search = "" } = req.query;
+    const offset = (page - 1) * limit;
 
-router.get("/:id", (req, res) => {
-  const { id } = req.params;
-  const product = products.find((p) => p.id === parseInt(id));
-  if (!product) {
-    return res.status(404).json({ message: "Producto no encontrado" });
-  }
-  res.json(product);
-});
+    db.all(
+      `SELECT * FROM products WHERE name LIKE ? LIMIT ? OFFSET ?`,
+      [`%${search}%`, limit, offset],
+      (err, rows) => {
+        if (err) {
+          return res.status(500).json({ message: "Error fetching products" });
+        }
+        res.json(rows);
+      }
+    );
+  });
 
-module.exports = router;
+  router.get("/:id", (req, res) => {
+    const { id } = req.params;
+
+    db.get(`SELECT * FROM products WHERE id = ?`, [id], (err, row) => {
+      if (err) {
+        return res.status(500).json({ message: "Error fetching product" });
+      }
+      if (!row) {
+        return res.status(404).json({ message: "Producto no encontrado" });
+      }
+      res.json(row);
+    });
+  });
+
+  return router;
+};
