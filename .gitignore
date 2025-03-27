@@ -12,6 +12,9 @@ logs/
 # Environment Variables
 .env
 
+# Frontend Environment Variables
+frontend/.env
+
 # Build Output
 dist/
 build/
