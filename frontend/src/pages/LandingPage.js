@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 function LandingPage() {
-  const products = [
-    { id: 1, name: "Producto 1", price: 100 },
-    { id: 2, name: "Producto 2", price: 200 },
-  ];
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/products`);
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
     <div>
@@ -14,8 +25,7 @@ function LandingPage() {
       <ul>
         {products.map((product) => (
           <li key={product.id}>
-            <Link to={`/product/${product.id}`}>{product.name}</Link> - $
-            {product.price}
+            <Link to={`/product/${product.id}`}>{product.name}</Link> - ${product.price}
           </li>
         ))}
       </ul>

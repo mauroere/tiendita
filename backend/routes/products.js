@@ -33,5 +33,24 @@ module.exports = (db) => {
     });
   });
 
+  router.post("/", (req, res) => {
+    const { name, price } = req.body;
+
+    if (!name || !price) {
+      return res.status(400).json({ message: "Invalid product data" });
+    }
+
+    db.run(
+      `INSERT INTO products (name, price) VALUES (?, ?)`,
+      [name, price],
+      function (err) {
+        if (err) {
+          return res.status(500).json({ message: "Error adding product" });
+        }
+        res.status(201).json({ message: "Product added", productId: this.lastID });
+      }
+    );
+  });
+
   return router;
 };
